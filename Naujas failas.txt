@@ -1,0 +1,31 @@
+#!/bin/bash
+atrm $(atq | cut -f1) && killall gst-play-1.0
+ 
+mapfile -t -n 4 ss <'/you/config/bell'
+
+IFS='|' read -r -a aa <<< $(yad \
+--title="Settings" \
+--form \
+--width=900 \
+--height=200 \
+--field="lesson time" "${ss[0]}" \
+--field="break time" "${ss[1]}" \
+--field="music for the lesson:SFL" "${ss[2]}" \
+--field="music for the break:SFL" "${ss[3]}")
+
+sed -i "1c${aa[0]}" /you/config/bell
+sed -i "2c${aa[1]}" /you/config/bell
+sed -i "3c${aa[2]}" /you/config/bell
+sed -i "4c${aa[3]}" /you/config/bell
+
+for i in ${aa[0]} ; do echo gst-play-1.0 "'${aa[2]}'" | at "$i" ; done 
+for i in ${aa[1]} ; do echo gst-play-1.0 "'${aa[3]}'" | at "$i" ; done
+ cc=( $(atq|cut -f 1) )
+notify-send -u critical " Lessons" "${aa[0]}\n${aa[2]}\n Breaks\n${aa[1]}\n${aa[3]}\n Today\n$(date +%F---%A)\n "${#cc[@]}"\n Bell"
+[[ "${#cc[@]}" = 0 ]] || yad \
+--title="10 second test" \
+--form \
+--width=900 \
+--field="Lessons:BTN" "timeout 10 gst-play-1.0 '${aa[2]}'" \
+--field="Breaks:BTN" "timeout 11 gst-play-1.0 '${aa[3]}'"
+
